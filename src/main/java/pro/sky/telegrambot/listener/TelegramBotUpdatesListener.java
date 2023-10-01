@@ -20,13 +20,15 @@ import java.util.regex.Pattern;
 @Service
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
+    //Create pattern which will find regular conversation//
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("([0-9\\.:\\s]{16})(\\s)(.+)");
+    //Initialize pattern format
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     private TelegramBot telegramBot;
 
-private final ScheduledTask scheduledTask;
+    private final ScheduledTask scheduledTask;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, ScheduledTask sheduledTask) {
         this.telegramBot = telegramBot;
@@ -38,6 +40,7 @@ private final ScheduledTask scheduledTask;
         telegramBot.setUpdatesListener(this);
     }
 
+    //Null checking method
     @Override
     public int process(List<Update> updates) {
         updates.forEach(this::updateReceived);
@@ -45,6 +48,7 @@ private final ScheduledTask scheduledTask;
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
+    //Method to update incoming message
     public void updateReceived(Update update) {
         if (update.message() == null) {
             return;
@@ -56,6 +60,7 @@ private final ScheduledTask scheduledTask;
         switch (messageText) {
             case "/start":
                 sendMessage(chatId);
+                logger.info("Sending message to user");
                 break;
             default:
                 logger.info("Unexpected message");
@@ -69,12 +74,14 @@ private final ScheduledTask scheduledTask;
         }
     }
 
+    //Send message method
     private void sendMessage(long chatId) {
         logger.info("Sending message to user");
         telegramBot.execute(new SendMessage(chatId, "Вас приветствует бот-напоминалка "
                 + "Готов вкалывать!"));
     }
 
+    //Find and check pattern method
     private void matchedMessage(long chatId, Matcher matcher) {
         String dataTimeStr = matcher.group(1);
         try {
@@ -88,7 +95,7 @@ private final ScheduledTask scheduledTask;
             String notificationText = matcher.group(3);
             scheduledTask.saveNotification(chatId, notificationText, dateTime);
             telegramBot.execute(new SendMessage(chatId, "Дело сделано!"));
-
+            logger.info("Send confirm message");
 
         } catch (DateTimeParseException e) {
             sendFormatError(chatId);
@@ -96,12 +103,16 @@ private final ScheduledTask scheduledTask;
 
     }
 
+    //Send time error
     private void sendPastTimeError(long chatId) {
         telegramBot.execute(new SendMessage(chatId, "Что было, то было. Назад не воротишь!"));
+        logger.info("Send past time error");
     }
 
+    //Send format error
     private void sendFormatError(long chatId) {
         telegramBot.execute(new SendMessage(chatId, "Введите сообщение в формате: dd.MM.yyyy HH:mm Ваш текст"));
+        logger.info("Send format error");
     }
 }
 

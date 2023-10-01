@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - includeAll:
+      path:liquibase/scripts/
+  - include:
+      file: liquibase/scripts/create-notification-table.sql
