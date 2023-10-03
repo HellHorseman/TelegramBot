@@ -57,13 +57,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         String messageText = update.message().text();
         long chatId = update.message().chat().id();
 
-        switch (messageText) {
-            case "/start":
-                sendMessage(chatId);
-                logger.info("Sending message to user");
-                break;
-            default:
-                logger.info("Unexpected message");
+        if ("/start".equals(messageText)) {
+            sendMessage(chatId);
+            logger.info("Sending message to user");
+            return;
         }
 
         Matcher matcher = MESSAGE_PATTERN.matcher(messageText);
